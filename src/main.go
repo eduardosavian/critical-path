@@ -82,9 +82,40 @@ func buildGraph(activities []Activity) map[string]*Node {
 	return nodes
 }
 
-func calculateTimes(nodes map[string]*Node) {
-	// Forward Pass: Calculate ES and EF
+func topologicalSort(nodes map[string]*Node) []*Node {
+	var sorted []*Node
+	visited := make(map[string]bool)
+
+	var visit func(node *Node)
+	visit = func(node *Node) {
+		if visited[node.Name] {
+			return
+		}
+		visited[node.Name] = true
+		for _, successor := range node.Successors {
+			visit(successor)
+		}
+		sorted = append(sorted, node)
+	}
+
 	for _, node := range nodes {
+		visit(node)
+	}
+
+	// Reverse the sorted list for backward pass
+	for i, j := 0, len(sorted)-1; i < j; i, j = i+1, j-1 {
+		sorted[i], sorted[j] = sorted[j], sorted[i]
+	}
+
+	return sorted
+}
+
+func calculateTimes(nodes map[string]*Node) {
+	// Topological sorting for proper order of processing
+	sortedNodes := topologicalSort(nodes)
+
+	// Forward Pass: Calculate ES and EF
+	for _, node := range sortedNodes {
 		node.ES = 0
 		for _, precedent := range node.Precedents {
 			if precedent != "" {
@@ -105,19 +136,19 @@ func calculateTimes(nodes map[string]*Node) {
 	}
 
 	// Backward Pass: Calculate LS and LF
-	for _, node := range nodes {
-		node.LF = maxEF
-	}
+	// for _, node := range sortedNodes {
+	// 	node.LF = maxEF
+	// }
 
-	// Calculate LS and LF correctly by iterating backwards
-	for _, node := range nodes {
-		for _, successor := range node.Successors {
-			if successor.LS < node.LF {
-				node.LF = successor.LS
-			}
-		}
-		node.LS = node.LF - node.Duration
-	}
+	// for _, node := range sortedNodes {
+	// 	node.LS = node.LF - node.Duration
+	// 	for _, successor := range node.Successors {
+	// 		if successor.LS < node.LF {
+	// 			node.LF = successor.LS
+	// 		}
+	// 	}
+	// 	node.LS = node.LF - node.Duration
+	// }
 }
 
 func findCriticalPath(nodes map[string]*Node) []string {
@@ -128,6 +159,15 @@ func findCriticalPath(nodes map[string]*Node) []string {
 		}
 	}
 	return criticalPath
+}
+
+func printInitialData(activities []Activity) {
+	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.AlignRight)
+	fmt.Fprintln(writer, "Activity\tDuration\tPrecedents\t")
+	for _, activity := range activities {
+		fmt.Fprintf(writer, "%s\t%d\t%s\t\n", activity.Name, activity.Duration, strings.Join(activity.Precedents, ","))
+	}
+	writer.Flush()
 }
 
 func printResults(nodes map[string]*Node) {
@@ -145,6 +185,7 @@ func printResults(nodes map[string]*Node) {
 
 func main() {
 	activities := readActivities()
+	printInitialData(activities)
 	nodes := buildGraph(activities)
 	calculateTimes(nodes)
 	printResults(nodes)
