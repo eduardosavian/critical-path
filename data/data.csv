@@ -1,0 +1,5 @@
+Name,Duration,Precedents
+A,2,-
+B,3,A
+C,4,A
+D,2, B,C

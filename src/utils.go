@@ -2,49 +2,55 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"text/tabwriter"
 )
 
-func readActivities() []Activity {
+func readActivities(inputPath string) []Activity {
 	var activities []Activity
 	scanner := bufio.NewScanner(os.Stdin)
 
-	for {
-		fmt.Println("Enter activity (name duration precedents), or 'done' to finish:")
-		scanner.Scan()
-		input := scanner.Text()
+	_, err := os.Stat(inputPath)
 
-		if input == "done" {
-			break
+    if err == nil {
+        fmt.Println("O arquivo", inputPath, "existe.")
+    } else if errors.Is(err, os.ErrNotExist) {
+		for {
+			fmt.Println("Enter activity (name duration precedents), or 'done' to finish:")
+			scanner.Scan()
+			input := scanner.Text()
+
+			if input == "done" {
+				break
+			}
+			parts := strings.Fields(input)
+			if len(parts) < 2 {
+				fmt.Println("Invalid input, please enter again.")
+				continue
+			}
+			name := parts[0]
+			var duration int
+			if _, err := fmt.Sscanf(parts[1], "%d", &duration); err != nil {
+				fmt.Println("Invalid input, please enter again.")
+				continue
+			}
+			precedents := []string{}
+			if len(parts) > 2 && parts[2] != "-" {
+				precedents = strings.Split(parts[2], ",")
+			}
+			activities = append(activities, Activity{
+				Name:       name,
+				Duration:   duration,
+				Precedents: precedents,
+			})
 		}
+    } else {
+        fmt.Println("Error:", err)
+    }
 
-		parts := strings.Fields(input)
-		if len(parts) < 2 {
-			fmt.Println("Invalid input, please enter again.")
-			continue
-		}
-
-		name := parts[0]
-		var duration int
-		if _, err := fmt.Sscanf(parts[1], "%d", &duration); err != nil {
-			fmt.Println("Invalid input, please enter again.")
-			continue
-		}
-
-		precedents := []string{}
-		if len(parts) > 2 && parts[2] != "-" {
-			precedents = strings.Split(parts[2], ",")
-		}
-
-		activities = append(activities, Activity{
-			Name:       name,
-			Duration:   duration,
-			Precedents: precedents,
-		})
-	}
 	return activities
 }
 

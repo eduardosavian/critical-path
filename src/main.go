@@ -1,7 +1,8 @@
 package main
 
 func main() {
-	activities := readActivities()
+	inputPath := "data/data.csv"
+	activities := readActivities(inputPath)
 	printInitialData(activities)
 	nodes := buildGraph(activities)
 	calculateTimes(nodes)
