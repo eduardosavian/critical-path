@@ -23,21 +23,20 @@ func readActivities(inputPath string) ([]Activity, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error opening file: %w", err)
 		}
-		defer file.Close() // Ensure file is closed even in case of errors
+		defer file.Close()
 
 		reader := csv.NewReader(file)
-		reader.Comma = ';' // Set custom comma delimiter if needed
+		reader.Comma = ';'
 
 		for {
 			record, err := reader.Read()
 			if err == io.EOF {
-				break // End of file reached
+				break
 			}
 			if err != nil {
 				return nil, fmt.Errorf("error reading record: %w", err)
 			}
 
-			// Validate record length (at least 3 fields)
 			if len(record) < 3 {
 				return nil, errors.New("invalid CSV record: expected at least 3 fields")
 			}
