@@ -2,22 +2,64 @@ package main
 
 import (
 	"bufio"
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 )
 
-func readActivities(inputPath string) []Activity {
+func readActivities(inputPath string) ([]Activity, error) {
 	var activities []Activity
 	scanner := bufio.NewScanner(os.Stdin)
 
 	_, err := os.Stat(inputPath)
 
-    if err == nil {
-        fmt.Println("O arquivo", inputPath, "existe.")
-    } else if errors.Is(err, os.ErrNotExist) {
+	if err == nil {
+		file, err := os.Open(inputPath)
+		if err != nil {
+			return nil, fmt.Errorf("error opening file: %w", err)
+		}
+		defer file.Close() // Ensure file is closed even in case of errors
+
+		reader := csv.NewReader(file)
+		reader.Comma = ';' // Set custom comma delimiter if needed
+
+		for {
+			record, err := reader.Read()
+			if err == io.EOF {
+				break // End of file reached
+			}
+			if err != nil {
+				return nil, fmt.Errorf("error reading record: %w", err)
+			}
+
+			// Validate record length (at least 3 fields)
+			if len(record) < 3 {
+				return nil, errors.New("invalid CSV record: expected at least 3 fields")
+			}
+
+			name := record[0]
+			duration, err := strconv.Atoi(record[1])
+			if err != nil {
+				return nil, fmt.Errorf("invalid duration format: %w", err)
+			}
+
+			precedents := []string{}
+			if record[2] != "-" {
+				precedents = strings.Split(record[2], ",")
+			}
+
+			activities = append(activities, Activity{
+				Name:       name,
+				Duration:   duration,
+				Precedents: precedents,
+			})
+		}
+	} else if errors.Is(err, os.ErrNotExist) {
 		for {
 			fmt.Println("Enter activity (name duration precedents), or 'done' to finish:")
 			scanner.Scan()
@@ -47,12 +89,13 @@ func readActivities(inputPath string) []Activity {
 				Precedents: precedents,
 			})
 		}
-    } else {
-        fmt.Println("Error:", err)
-    }
+	} else {
+		return nil, fmt.Errorf("error checking file existence: %w", err)
+	}
 
-	return activities
+	return activities, nil
 }
+
 
 func buildGraph(activities []Activity) map[string]*Node {
 	nodes := make(map[string]*Node)

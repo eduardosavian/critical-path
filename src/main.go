@@ -1,8 +1,11 @@
 package main
 
+import "fmt"
+
 func main() {
 	inputPath := "data/data.csv"
-	activities := readActivities(inputPath)
+	activities, err := readActivities(inputPath)
+	fmt.Print(err)
 	printInitialData(activities)
 	nodes := buildGraph(activities)
 	calculateTimes(nodes)
