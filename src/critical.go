@@ -82,10 +82,26 @@ func calculateTimes(nodes map[string]*Node) {
 
 func findCriticalPath(nodes map[string]*Node) []string {
 	var criticalPath []string
-	for _, node := range nodes {
-		if node.ES == node.LS {
-			criticalPath = append(criticalPath, node.Name)
+	startNode := findStartNode(nodes)
+	var visit func(node *Node)
+	visit = func(node *Node) {
+		criticalPath = append(criticalPath, node.Name)
+		for _, successor := range node.Successors {
+			if successor.ES == successor.LS { // Zero slack check
+				visit(successor)
+				break
+			}
 		}
 	}
+	visit(startNode)
 	return criticalPath
+}
+
+func findStartNode(nodes map[string]*Node) *Node {
+	for _, node := range nodes {
+		if len(node.Precedents) == 0 {
+			return node
+		}
+	}
+	return nil
 }
