@@ -18,6 +18,12 @@ go build -o critical src/main.go src/utils.go src/critical.go
 
 ### Run
 
-```go
+```bash
 ./critical
+```
+
+or
+
+```ps1
+.\critical.exe
 ```
