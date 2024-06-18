@@ -1,5 +1,7 @@
 # critic-path
 
+Made by Eduardo Savian and Marcos Fehlauer
+
 ## Description
 
 Fazer um programa que receba uma tabela de atividades, duração e precedentes e monte o grafo de PERT/CPM, identificando o caminho crítico e as folgas nas atividades.
