@@ -18,6 +18,19 @@ O trabalho deverá ser apresentado no dia da entrega, explicando como ele foi fe
 go build -o critical src/main.go src/utils.go src/critical.go
 ```
 
+### Put the path table in data/data.csv file
+
+ex:
+
+```csv
+A;10;-
+B;4;A
+C;7;A
+D;5;C
+E;5;B,D
+F;2;C
+```
+
 ### Run
 
 ```bash
